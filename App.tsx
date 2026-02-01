@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, Link, useParams } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Link, useParams, useLocation } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import { STRINGS, PAGE_CONTENT, DARK_MESSAGES, LIGHT_MESSAGES } from './constants';
@@ -481,14 +481,31 @@ export default function App() {
   const [theme, setTheme] = useState('dark');
   const [themeMsg, setThemeMsg] = useState('');
   const [showWelcome, setShowWelcome] = useState(false);
+  
   useEffect(() => {
     document.documentElement.classList.add('dark');
     const hasSeenWelcome = sessionStorage.getItem('jb_welcome_seen');
     if (!hasSeenWelcome) { setTimeout(() => setShowWelcome(true), 1500); }
   }, []);
+
+  // Close mobile menu when a navigation link is clicked
+  const handleNavLinkClick = () => {
+    setIsMenuOpen(false);
+  };
+
   const closeWelcome = () => { setShowWelcome(false); sessionStorage.setItem('jb_welcome_seen', 'true'); };
   const openRegister = () => { closeWelcome(); setAuthMode('register'); setIsAuthOpen(true); };
-  const toggleTheme = () => { const newTheme = theme === 'light' ? 'dark' : 'light'; setTheme(newTheme); document.documentElement.classList.toggle('dark'); const messages = newTheme === 'dark' ? DARK_MESSAGES : LIGHT_MESSAGES; const randomMsg = messages[Math.floor(Math.random() * messages.length)]; setThemeMsg(randomMsg); setTimeout(() => setThemeMsg(''), 5000); };
+  
+  const toggleTheme = () => { 
+    const newTheme = theme === 'light' ? 'dark' : 'light'; 
+    setTheme(newTheme); 
+    document.documentElement.classList.toggle('dark'); 
+    const messages = newTheme === 'dark' ? DARK_MESSAGES : LIGHT_MESSAGES; 
+    const randomMsg = messages[Math.floor(Math.random() * messages.length)]; 
+    setThemeMsg(randomMsg); 
+    setTimeout(() => setThemeMsg(''), 5000); 
+  };
+
   const navLinks = [
     { label: STRINGS.NAV_HOME, path: "/", iconName: "Home" },
     { label: STRINGS.NAV_MARKET, path: "/page/market", iconName: "ShoppingBag" },
@@ -499,15 +516,91 @@ export default function App() {
     { label: STRINGS.NAV_CASE, path: "/page/case", iconName: "Gavel" },
     { label: STRINGS.NAV_WORKER_REG, path: "/page/worker-reg", iconName: "Users" },
   ];
+
   return (
     <Router>
       <div className={`min-h-screen flex flex-col transition-colors duration-500 ${theme === 'dark' ? 'dark bg-slate-900 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
         <BreakingNews />
+        
         {themeMsg && (<div className="fixed inset-0 pointer-events-none z-[200] flex items-center justify-center p-6 backdrop-blur-[2px]"><div className={`animate-in zoom-in slide-in-from-bottom-10 duration-500 flex flex-col items-center text-center p-10 rounded-[3rem] shadow-2xl border-4 ${theme === 'dark' ? 'bg-red-600 border-red-400 shadow-red-500/40' : 'bg-blue-600 border-blue-400 shadow-blue-500/40'} text-white max-w-lg`}><div className="mb-6 bg-white/20 p-5 rounded-full ring-8 ring-white/10 animate-pulse">{theme === 'dark' ? <AlertTriangle size={64} /> : <Star size={64} />}</div><h3 className="text-3xl font-black mb-2 leading-tight">{themeMsg}</h3><div className="w-16 h-1.5 bg-white/50 rounded-full mt-4"></div></div></div>)}
+        
         {showWelcome && (<div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-md p-4"><div className="bg-white dark:bg-slate-800 rounded-[3rem] w-full max-w-md shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden animate-in fade-in zoom-in duration-500 border border-white/10 relative"><div className="p-12 text-center"><div className="bg-blue-600 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 text-white shadow-xl shadow-blue-200 dark:shadow-none"><ShieldCheck size={50} /></div><h2 className="text-3xl font-black mb-4 dark:text-white">আপনি কি এলাকায় নতুন?</h2><p className="text-slate-600 dark:text-slate-300 text-xl font-medium leading-relaxed mb-10">নতুন হলে এখুনি রেজিষ্ট্রেশন করুন, নহলে আপনার ভোট অন্যকেউ বিক্রি করে ফেলবে।</p><div className="space-y-4"><button onClick={openRegister} className="w-full py-5 bg-blue-600 text-white font-black text-2xl rounded-2xl hover:bg-blue-700 hover:scale-[1.02] active:scale-95 transition shadow-2xl shadow-blue-400/30">নিবন্ধন করুন</button><button onClick={closeWelcome} className="w-full py-4 text-slate-500 dark:text-slate-400 font-bold hover:bg-slate-100 dark:hover:bg-slate-700 rounded-2xl transition">পরে</button></div></div></div></div>)}
+        
         <nav className="sticky top-[45px] z-50 bg-white dark:bg-slate-800 shadow-md border-b dark:border-slate-700">
-          <div className="max-w-[1440px] mx-auto px-4 lg:px-8"><div className="flex justify-between items-center h-20"><Link to="/" className="flex items-center group shrink-0"><div className="bg-blue-600 p-2 rounded-xl group-hover:rotate-12 transition"><Vote className="w-8 h-8 text-white" /></div><div className="flex items-center ml-2"><span className="text-3xl font-black text-blue-700 dark:text-blue-400 tracking-tighter">ভোটবিক্রি</span><span className="text-3xl font-black text-amber-500 dark:text-amber-400 tracking-tighter">.com</span></div></Link><div className="hidden lg:flex items-center flex-wrap justify-center gap-1 mx-4">{navLinks.map((link) => (<Link key={link.path} to={link.path} className="px-3 py-1.5 text-[13px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg transition">{link.label}</Link>))}</div><div className="flex items-center space-x-2 shrink-0"><button onClick={toggleTheme} className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition">{theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}</button><div className="hidden md:flex items-center space-x-2"><button onClick={() => { setAuthMode('login'); setIsAuthOpen(true); }} className="px-4 py-2 text-blue-600 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-900 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/30 transition flex items-center gap-2"><LogIn size={18} /> {STRINGS.LOGIN_BUTTON}</button><button onClick={() => { setAuthMode('register'); setIsAuthOpen(true); }} className="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition">{STRINGS.JOIN_BUTTON}</button></div><button onClick={() => setIsMenuOpen(!isMenuOpen)} className="lg:hidden p-2">{isMenuOpen ? <X size={28} /> : <Menu size={28} />}</button></div></div></div>
+          <div className="max-w-[1440px] mx-auto px-4 lg:px-8">
+            <div className="flex justify-between items-center h-20">
+              <Link to="/" className="flex items-center group shrink-0" onClick={handleNavLinkClick}>
+                <div className="bg-blue-600 p-2 rounded-xl group-hover:rotate-12 transition">
+                  <Vote className="w-8 h-8 text-white" />
+                </div>
+                <div className="flex items-center ml-2">
+                  <span className="text-3xl font-black text-blue-700 dark:text-blue-400 tracking-tighter">ভোটবিক্রি</span>
+                  <span className="text-3xl font-black text-amber-500 dark:text-amber-400 tracking-tighter">.com</span>
+                </div>
+              </Link>
+
+              {/* Desktop Menu */}
+              <div className="hidden lg:flex items-center flex-wrap justify-center gap-1 mx-4">
+                {navLinks.map((link) => (
+                  <Link key={link.path} to={link.path} className="px-3 py-1.5 text-[13px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg transition">
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+
+              <div className="flex items-center space-x-2 shrink-0">
+                <button onClick={toggleTheme} className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                  {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+                </button>
+                
+                <div className="hidden md:flex items-center space-x-2">
+                  <button onClick={() => { setAuthMode('login'); setIsAuthOpen(true); }} className="px-4 py-2 text-blue-600 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-900 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/30 transition flex items-center gap-2">
+                    <LogIn size={18} /> {STRINGS.LOGIN_BUTTON}
+                  </button>
+                  <button onClick={() => { setAuthMode('register'); setIsAuthOpen(true); }} className="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition">
+                    {STRINGS.JOIN_BUTTON}
+                  </button>
+                </div>
+                
+                {/* Mobile Toggle Button */}
+                <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="lg:hidden p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition">
+                  {isMenuOpen ? <X size={32} /> : <Menu size={32} />}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Menu Dropdown UI */}
+          {isMenuOpen && (
+            <div className="lg:hidden bg-white dark:bg-slate-800 border-t dark:border-slate-700 animate-in slide-in-from-top duration-300 overflow-hidden shadow-2xl">
+              <div className="flex flex-col p-4 gap-2">
+                {navLinks.map((link) => {
+                  const Icon = (LucideIcons as any)[link.iconName] || Home;
+                  return (
+                    <Link 
+                      key={link.path} 
+                      to={link.path} 
+                      onClick={handleNavLinkClick}
+                      className="flex items-center gap-4 px-4 py-4 text-lg font-black text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-2xl transition"
+                    >
+                      <div className="bg-slate-100 dark:bg-slate-900 p-2 rounded-xl"><Icon size={24} className="text-blue-600" /></div>
+                      {link.label}
+                    </Link>
+                  );
+                })}
+                <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t dark:border-slate-700">
+                  <button onClick={() => { setIsMenuOpen(false); setAuthMode('login'); setIsAuthOpen(true); }} className="w-full py-4 text-blue-600 dark:text-blue-400 font-black border-2 border-blue-100 dark:border-blue-900/50 rounded-2xl flex items-center justify-center gap-2">
+                    <LogIn size={20} /> {STRINGS.LOGIN_BUTTON}
+                  </button>
+                  <button onClick={() => { setIsMenuOpen(false); setAuthMode('register'); setIsAuthOpen(true); }} className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl shadow-xl shadow-blue-500/20">
+                    {STRINGS.JOIN_BUTTON}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </nav>
+
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={
@@ -525,6 +618,7 @@ export default function App() {
             <Route path="/page/:pageId" element={<GenericPage />} />
           </Routes>
         </main>
+        
         <footer className="bg-white dark:bg-slate-900 border-t-2 dark:border-slate-800 pt-20 pb-12"><div className="max-w-7xl mx-auto px-4"><div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-16"><div className="col-span-1 md:col-span-1"><div className="flex items-center mb-8 group"><div className="bg-blue-600 p-2 rounded-xl mr-2"><Vote className="w-7 h-7 text-white" /></div><span className="text-3xl font-black text-blue-700 dark:text-blue-400 tracking-tighter">ভোটবিক্রি</span><span className="text-3xl font-black text-amber-500 dark:text-amber-400 tracking-tighter">.com</span></div><p className="text-slate-500 dark:text-slate-400 leading-relaxed font-bold text-lg">আমরা ডিজিটাল পদ্ধতিতে ভোটারদের তথ্য ব্যবস্থাপনা এবং রাজনৈতিক প্রচারণা সহজ করতে বদ্ধপরিকর। জাহিদুল ইসলামের হাত ধরে আগামীর রাজনীতি হবে প্রযুক্তিনির্ভর।</p><div className="flex gap-4 mt-10"><a href="#" className="p-4 bg-slate-100 dark:bg-slate-800 rounded-2xl hover:bg-blue-600 hover:text-white transition shadow-sm"><Facebook size={24} /></a><a href="#" className="p-4 bg-slate-100 dark:bg-slate-800 rounded-2xl hover:bg-blue-600 hover:text-white transition shadow-sm"><Twitter size={24} /></a><a href="#" className="p-4 bg-slate-100 dark:bg-slate-800 rounded-2xl hover:bg-blue-600 hover:text-white transition shadow-sm"><Youtube size={24} /></a></div></div><div><h4 className="text-xl font-black mb-8 flex items-center gap-2 text-slate-800 dark:text-white">কুইক লিঙ্কস</h4><ul className="space-y-5 font-bold text-lg text-slate-500 dark:text-slate-400"><li><Link to="/page/market" className="hover:text-blue-600 transition flex items-center gap-2"><ChevronRight size={16}/> মার্কেটপ্লেস</Link></li><li><Link to="/page/rumor" className="hover:text-blue-600 transition flex items-center gap-2"><ChevronRight size={16}/> গুজব</Link></li><li><Link to="/page/bank-loan" className="hover:text-blue-600 transition flex items-center gap-2"><ChevronRight size={16}/> ব্যাংক লোন</Link></li><li><Link to="/page/family-card" className="hover:text-blue-600 transition flex items-center gap-2"><ChevronRight size={16}/> ফ্যামিলি কার্ড</Link></li></ul></div><div><h4 className="text-xl font-black mb-8 text-slate-800 dark:text-white">আইনি তথ্য</h4><ul className="space-y-5 font-bold text-lg text-slate-500 dark:text-slate-400"><li><a href="#" className="hover:text-blue-600 transition flex items-center gap-2"><ChevronRight size={16}/> প্রাইভেসি পলিসি</a></li><li><a href="#" className="hover:text-blue-600 transition flex items-center gap-2"><ChevronRight size={16}/> ব্যবহারের শর্তাবলী</a></li><li><a href="#" className="hover:text-blue-600 transition flex items-center gap-2"><ChevronRight size={16}/> রিফান্ড পলিসি</a></li></ul></div><div className="bg-blue-50 dark:bg-blue-900/20 p-10 rounded-[3rem] border border-blue-100 dark:border-blue-800/50 shadow-inner"><h4 className="text-xl font-black mb-4 text-blue-700 dark:text-blue-400">সদস্যতা নিন</h4><p className="text-base text-blue-600 dark:text-blue-300 mb-8 font-bold leading-relaxed">নতুন খবর এবং গোপন অফার সরাসরি ইমেইলে পেতে সাবস্ক্রাইব করুন।</p><div className="flex flex-col gap-3"><input type="email" placeholder="আপনার ইমেইল..." className="bg-white dark:bg-slate-800 px-6 py-4 rounded-2xl border-2 border-blue-100 dark:border-blue-900 outline-none focus:ring-4 focus:ring-blue-500/20 transition font-bold" /><button className="bg-blue-600 text-white py-4 rounded-2xl font-black text-lg hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"><Send size={20} /> সাবস্ক্রাইব</button></div></div></div><div className="mb-16 bg-slate-50 dark:bg-slate-800 border-4 border-slate-200 dark:border-slate-700 rounded-[3rem] p-10 shadow-inner relative overflow-hidden group"><div className="absolute top-0 right-0 p-10 opacity-5 group-hover:rotate-12 transition duration-700"><AlertTriangle size={120} /></div><div className="flex flex-col md:flex-row items-center gap-8 relative z-10"><div className="bg-blue-600 p-6 rounded-[2rem] text-white shadow-xl"><Info size={40} /></div><div className="flex-grow text-center md:text-left"><h5 className="text-2xl font-black text-slate-700 dark:text-slate-200 mb-3 uppercase tracking-widest">{STRINGS.FOOTER_NOTE_HEADER}</h5><p className="text-slate-600 dark:text-slate-400 text-xl font-bold leading-relaxed italic">{STRINGS.FOOTER_NOTE_CONTENT}</p></div></div></div><div className="pt-12 border-t-2 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-8"><p className="text-slate-500 dark:text-slate-400 font-bold text-lg tracking-tight">{STRINGS.COPYRIGHT}</p><div className="flex items-center gap-6"><div className="h-1.5 w-16 bg-gradient-to-r from-transparent to-blue-600 rounded-full"></div><p className="text-blue-600 dark:text-blue-400 font-black text-3xl tracking-tighter">{STRINGS.FOOTER_TEXT}</p><div className="h-1.5 w-16 bg-gradient-to-l from-transparent to-blue-600 rounded-full"></div></div></div></div></footer>
         <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} onSuccess={(u) => { setUser(u); setIsAuthOpen(false); }} initialMode={authMode} />
       </div>
