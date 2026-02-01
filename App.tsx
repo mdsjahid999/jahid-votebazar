@@ -77,6 +77,15 @@ const supabaseUrl = 'https://isvwqysavgjefnluhhkk.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlzdndxeXNhdmdqZWZubHWhhkkiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc2OTkzNTk5NSwiZXhwIjoyMDg1NTExOTk1fQ.ogU9dNsh76AmrNhWO0YaQEtpED_t_Tvlyc7r9Oa-g38';
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
+// Scroll to Top Component
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [pathname]);
+  return null;
+};
+
 // Breaking News Component
 const BreakingNews = () => (
   <div className="bg-red-600 text-white py-2.5 overflow-hidden sticky top-0 z-[100] border-b border-red-700 shadow-lg group">
@@ -519,6 +528,7 @@ export default function App() {
 
   return (
     <Router>
+      <ScrollToTop />
       <div className={`min-h-screen flex flex-col transition-colors duration-500 ${theme === 'dark' ? 'dark bg-slate-900 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
         <BreakingNews />
         
@@ -605,7 +615,23 @@ export default function App() {
           <Routes>
             <Route path="/" element={
               <div className="max-w-7xl mx-auto px-4 py-16">
-                <div className="text-center mb-24 relative"><div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-blue-500 blur-[140px] opacity-20 rounded-full"></div><div className="inline-flex items-center gap-2 px-6 py-2 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 rounded-full mb-8 font-black text-sm uppercase tracking-[0.2em] border border-blue-200 dark:border-blue-800"><TrendingUp size={16} /> ডিজিটাল নির্বাচনী বিপ্লব</div><h1 className="text-6xl lg:text-9xl font-black mb-8 leading-[1] tracking-tight text-slate-900 dark:text-white drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">ভোট যখন <span className="text-blue-600">বিক্রয় হয়,</span> <br/> উন্নয়ন তখন <span className="text-indigo-600">আকাশ ছোঁয়!</span></h1><p className="text-2xl text-slate-700 dark:text-slate-400 max-w-4xl mx-auto font-bold leading-relaxed mb-12">আপনার রাজনৈতিক অবস্থান সুসংহত করতে এবং আধুনিক প্রচারণায় অংশ নিতে আজই যুক্ত হোন আমাদের ডিজিটাল প্ল্যাটফর্মে।</p><div className="flex flex-wrap justify-center gap-6"><button onClick={() => { setAuthMode('register'); setIsAuthOpen(true); }} className="bg-blue-600 text-white px-14 py-6 rounded-[2.5rem] font-black text-2xl hover:scale-105 transition shadow-2xl active:scale-95">যাত্রা শুরু করুন</button><button className="bg-white dark:bg-slate-800 text-slate-700 dark:text-white border-4 border-slate-100 dark:border-slate-700 px-12 py-6 rounded-[2.5rem] font-black text-2xl hover:bg-slate-50 transition flex items-center gap-3 shadow-xl"><Cpu size={24} /> ডেমো দেখুন</button></div></div>
+                <div className="text-center mb-24 relative">
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-blue-500 blur-[140px] opacity-20 rounded-full"></div>
+                  <div className="inline-flex items-center gap-2 px-6 py-2 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 rounded-full mb-8 font-black text-sm uppercase tracking-[0.2em] border border-blue-200 dark:border-blue-800">
+                    <TrendingUp size={16} /> ডিজিটাল নির্বাচনী বিপ্লব
+                  </div>
+                  <h1 className="text-6xl lg:text-9xl font-black mb-8 leading-[1.1] tracking-tight text-slate-900 dark:text-white drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)] animate-in fade-in slide-in-from-bottom-5 duration-700">
+                    টাকা নিন <span className="text-blue-600">বিকাশে-🕊️,</span> <br/> 
+                    ভোট দিন <span className="text-indigo-600">হেসে হেসে।</span>
+                  </h1>
+                  <p className="text-2xl text-slate-700 dark:text-slate-400 max-w-4xl mx-auto font-bold leading-relaxed mb-12">
+                    "ভোট যখন বিক্রয় হয়, উন্নয়ন তখন আকাশ ছোঁয়!"
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-6">
+                    <button onClick={() => { setAuthMode('register'); setIsAuthOpen(true); }} className="bg-blue-600 text-white px-14 py-6 rounded-[2.5rem] font-black text-2xl hover:scale-105 transition shadow-2xl active:scale-95">যাত্রা শুরু করুন</button>
+                    <button className="bg-white dark:bg-slate-800 text-slate-700 dark:text-white border-4 border-slate-100 dark:border-slate-700 px-12 py-6 rounded-[2.5rem] font-black text-2xl hover:bg-slate-50 transition flex items-center gap-3 shadow-xl"><Cpu size={24} /> ডেমো দেখুন</button>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-24">
                    {[ { title: "ভোট কেনা বেচার বিশ্বস্ত প্লাটফর্ম", desc: "জাহিদুল ইসলামের ভেরিফাইড সিস্টেমে আপনার ভোটের সঠিক মূল্য নিশ্চিত করুন।", icon: HandCoins, color: "blue" }, { title: "১ প্লেট কাচ্চিতেই ভোট নিশ্চিত", desc: "সেরা ডিল এবং খাবারের অফার সরাসরি আপনার দোরগোড়ায়।", icon: Utensils, color: "red" }, { title: "বিপদে পড়লে জাহিদুল ভাই আছে", desc: "যেকোনো আইনি বা রাজনৈতিক ঝামেলায় আপনার পাশে ২৪/৭ আছি আমরা।", icon: Heart, color: "indigo" } ].map((feature, i) => (
                      <div key={i} className="bg-white dark:bg-slate-800 p-12 rounded-[3rem] border border-slate-200 dark:border-slate-700 shadow-2xl hover:-translate-y-3 transition duration-500 group"><div className={`w-20 h-20 bg-${feature.color}-100 dark:bg-${feature.color}-900/30 rounded-3xl flex items-center justify-center mb-8 text-${feature.color}-600 dark:text-${feature.color}-400 group-hover:scale-110 transition duration-500`}><feature.icon size={40} /></div><h3 className="text-3xl font-black mb-4 leading-tight text-slate-800 dark:text-white">{feature.title}</h3><p className="text-slate-500 dark:text-slate-400 font-bold text-lg leading-relaxed">{feature.desc}</p></div>
