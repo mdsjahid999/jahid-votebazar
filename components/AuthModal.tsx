@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { X, Lock, Smartphone, User as UserIcon, Users } from 'lucide-react';
 import { STRINGS } from '../constants';
 import { User } from '../types';
-import { supabase } from '../App';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -30,41 +29,54 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess, initi
     setError('');
 
     try {
-      const deviceId = localStorage.getItem('jb_device_id') || 'dev_unknown';
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const deviceId = localStorage.getItem('jb_device_id') || `dev_${Math.random().toString(36).substr(2, 9)}`;
+      if (!localStorage.getItem('jb_device_id')) {
+        localStorage.setItem('jb_device_id', deviceId);
+      }
+
+      // LocalStorage based Mock Auth Logic
+      const usersJson = localStorage.getItem('jb_users') || '[]';
+      const users: any[] = JSON.parse(usersJson);
 
       if (mode === 'register') {
-        // Registration Logic
-        const { data, error: regError } = await supabase
-          .from('profiles')
-          .insert([
-            { name, phone_or_email: id, role, device_id: deviceId }
-          ])
-          .select()
-          .single();
+        // Check if user already exists
+        const existingUser = users.find(u => u.phoneOrEmail === id);
+        if (existingUser) {
+          throw new Error('এই নম্বর বা ইমেইল দিয়ে ইতিপূর্বেই নিবন্ধন করা হয়েছে।');
+        }
 
-        if (regError) throw regError;
-        onSuccess({
-          id: data.id,
-          name: data.name,
-          phoneOrEmail: data.phone_or_email,
-          deviceId: data.device_id
-        });
+        const newUser: User = {
+          id: `user_${Date.now()}`,
+          name,
+          phoneOrEmail: id,
+          deviceId: deviceId
+        };
+
+        users.push({ ...newUser, role });
+        localStorage.setItem('jb_users', JSON.stringify(users));
+        localStorage.setItem('jb_current_user', JSON.stringify(newUser));
+        
+        onSuccess(newUser);
       } else {
         // Login Logic
-        const { data, error: loginError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('phone_or_email', id)
-          .single();
+        const user = users.find(u => u.phoneOrEmail === id);
 
-        if (loginError) throw new Error('ইউজার খুঁজে পাওয়া যায়নি। অনুগ্রহ করে নিবন্ধন করুন।');
+        if (!user) {
+          throw new Error('ইউজার খুঁজে পাওয়া যায়নি। অনুগ্রহ করে প্রথমে নিবন্ধন করুন।');
+        }
         
-        onSuccess({
-          id: data.id,
-          name: data.name,
-          phoneOrEmail: data.phone_or_email,
-          deviceId: data.device_id
-        });
+        const loggedInUser: User = {
+          id: user.id,
+          name: user.name,
+          phoneOrEmail: user.phoneOrEmail,
+          deviceId: user.deviceId
+        };
+
+        localStorage.setItem('jb_current_user', JSON.stringify(loggedInUser));
+        onSuccess(loggedInUser);
       }
     } catch (err: any) {
       setError(err.message || 'একটি সমস্যা হয়েছে। আবার চেষ্টা করুন।');
@@ -74,8 +86,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess, initi
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border dark:border-slate-700">
+    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border dark:border-slate-700 animate-in fade-in zoom-in duration-300">
         <div className="p-8 text-center bg-blue-600 text-white relative">
           <button onClick={onClose} className="absolute top-4 right-4 p-1 hover:bg-white/20 rounded-full transition">
             <X className="w-6 h-6" />
@@ -89,21 +101,25 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess, initi
 
         <div className="flex border-b dark:border-slate-700">
           <button 
-            onClick={() => setMode('login')}
-            className={`flex-1 py-3 font-bold transition ${mode === 'login' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-400'}`}
+            onClick={() => { setMode('login'); setError(''); }}
+            className={`flex-1 py-3 font-bold transition ${mode === 'login' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50 dark:bg-blue-900/10' : 'text-slate-400'}`}
           >
             লগইন
           </button>
           <button 
-            onClick={() => setMode('register')}
-            className={`flex-1 py-3 font-bold transition ${mode === 'register' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-slate-400'}`}
+            onClick={() => { setMode('register'); setError(''); }}
+            className={`flex-1 py-3 font-bold transition ${mode === 'register' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50 dark:bg-blue-900/10' : 'text-slate-400'}`}
           >
             নিবন্ধন
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-8 space-y-4">
-          {error && <p className="text-red-500 text-sm text-center font-bold bg-red-50 dark:bg-red-900/20 p-2 rounded-lg">{error}</p>}
+          {error && (
+            <div className="text-red-500 text-sm text-center font-bold bg-red-50 dark:bg-red-900/20 p-3 rounded-xl border border-red-100 dark:border-red-900/30">
+              {error}
+            </div>
+          )}
           
           <div className="space-y-4">
             {mode === 'register' && (
@@ -118,7 +134,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess, initi
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="আপনার পুরো নাম"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-900 outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-900 outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white transition-all"
                     />
                   </div>
                 </div>
@@ -127,7 +143,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess, initi
                   <select 
                     value={role} 
                     onChange={(e) => setRole(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-900 outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-900 outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white transition-all cursor-pointer"
                   >
                     <option value="voter">ভোটার</option>
                     <option value="worker">কর্মি</option>
@@ -147,7 +163,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess, initi
                   value={id}
                   onChange={(e) => setId(e.target.value)}
                   placeholder="০১৭XXXXXXXX অথবা ইমেইল"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-900 outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-900 outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-white transition-all"
                 />
               </div>
             </div>
@@ -156,9 +172,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess, initi
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-4 bg-blue-600 text-white font-black text-xl rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition transform hover:-translate-y-0.5 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`w-full py-4 bg-blue-600 text-white font-black text-xl rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all transform active:scale-95 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {loading ? 'প্রক্রিয়াধীন...' : (mode === 'register' ? 'নিবন্ধন করুন' : STRINGS.LOGIN_BUTTON)}
+            {loading ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                প্রক্রিয়াধীন...
+              </div>
+            ) : (mode === 'register' ? 'নিবন্ধন সম্পন্ন করুন' : STRINGS.LOGIN_BUTTON)}
           </button>
         </form>
       </div>
