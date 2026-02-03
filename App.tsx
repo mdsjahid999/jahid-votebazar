@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, Link, useParams, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Link, useParams, useLocation, useNavigate } from 'react-router-dom';
 import * as LucideIcons from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import { STRINGS, PAGE_CONTENT, DARK_MESSAGES, LIGHT_MESSAGES } from './constants';
@@ -83,6 +82,29 @@ const ScrollToTop = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [pathname]);
+  return null;
+};
+
+// Initial Redirect Component - FIRST LOAD TO HOME PAGE
+const InitialRedirect = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // We check if we have already handled the initial redirect in this session
+    const hasBeenRedirected = sessionStorage.getItem('jb_initial_load_done');
+    
+    if (!hasBeenRedirected) {
+      sessionStorage.setItem('jb_initial_load_done', 'true');
+      
+      // If the current path is anything other than the root, redirect to root.
+      // With HashRouter, we check window.location.hash. 
+      // If it's something like #/page/market, we want to go back to #/
+      if (window.location.hash && window.location.hash !== '#/') {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [navigate]);
+
   return null;
 };
 
@@ -528,6 +550,7 @@ export default function App() {
 
   return (
     <Router>
+      <InitialRedirect />
       <ScrollToTop />
       <div className={`min-h-screen flex flex-col transition-colors duration-500 ${theme === 'dark' ? 'dark bg-slate-900 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
         <BreakingNews />
